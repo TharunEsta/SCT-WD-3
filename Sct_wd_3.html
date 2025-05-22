@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Quiz Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .quiz-container {
+      background: #fff;
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .question {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .options {
+      margin-bottom: 20px;
+      text-align: left;
+      display: inline-block;
+    }
+
+    .options label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn {
+      padding: 10px 25px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .result {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+
+    input[type="text"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .note {
+      color: #888;
+      margin-top: 10px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+<div class="quiz-container" id="quiz">
+  <div id="question-container"></div>
+  <div id="note" class="note"></div>
+  <button class="btn" onclick="submitAnswer()">Submit</button>
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    type: "single",
+    question: "Which programming language is used for web development?",
+    options: ["Python", "C", "JavaScript", "Java"],
+    answer: "JavaScript"
+  },
+  {
+    type: "multiple",
+    question: "Which of the following are programming languages?",
+    options: ["HTML", "Python", "CSS", "Java"],
+    answer: ["Python", "Java"]
+  },
+  {
+    type: "fill",
+    question: "The sun rises in the ____.",
+    answer: "east"
+  },
+  {
+    type: "single",
+    question: "Which planet is known as the Red Planet?",
+    options: ["Earth", "Mars", "Venus", "Jupiter"],
+    answer: "Mars"
+  },
+  {
+    type: "fill",
+    question: "HTML stands for ____.",
+    answer: "HyperText Markup Language"
+  },
+  {
+    type: "multiple",
+    question: "Select fruits from the list:",
+    options: ["Carrot", "Apple", "Potato", "Mango"],
+    answer: ["Apple", "Mango"]
+  },
+  {
+    type: "single",
+    question: "What is the capital of Germany?",
+    options: ["Munich", "Berlin", "Frankfurt", "Hamburg"],
+    answer: "Berlin"
+  },
+  {
+    type: "fill",
+    question: "The chemical symbol for water is ____.",
+    answer: "H2O"
+  },
+  {
+    type: "multiple",
+    question: "Which of the following are operating systems?",
+    options: ["Linux", "Windows", "Chrome", "MacOS"],
+    answer: ["Linux", "Windows", "MacOS"]
+  },
+  {
+    type: "single",
+    question: "How many continents are there on Earth?",
+    options: ["5", "6", "7", "8"],
+    answer: "7"
+  },
+  {
+    type: "fill",
+    question: "CSS stands for ____ Style Sheets.",
+    answer: "Cascading"
+  },
+  {
+    type: "fill",
+    question: "The process of finding and fixing errors in software code is called ____.",
+    answer: "debugging"
+  }
+];
+
+let currentQuestion = 0;
+let score = 0;
+
+function loadQuestion() {
+  const q = questions[currentQuestion];
+  const container = document.getElementById("question-container");
+  const note = document.getElementById("note");
+
+  container.innerHTML = `<div class="question">${currentQuestion + 1}. ${q.question}</div><div class="options">`;
+
+  if (q.type === "single") {
+    q.options.forEach(opt => {
+      container.innerHTML += `
+        <label><input type="radio" name="option" value="${opt}"> ${opt}</label>
+      `;
+    });
+  } else if (q.type === "multiple") {
+    q.options.forEach(opt => {
+      container.innerHTML += `
+        <label><input type="checkbox" name="option" value="${opt}"> ${opt}</label>
+      `;
+    });
+  } else if (q.type === "fill") {
+    container.innerHTML += `
+      <input type="text" id="fill-answer" placeholder="Type your answer here...">
+    `;
+  }
+
+  container.innerHTML += `</div>`;
+
+  // Show note only for the first question
+  if (currentQuestion === 0) {
+    note.innerText = "After submitting the first question, you’ll be able to answer the next one.";
+  } else {
+    note.innerText = "";
+  }
+}
+
+function submitAnswer() {
+  const q = questions[currentQuestion];
+  let userAnswer;
+
+  if (q.type === "single") {
+    const selected = document.querySelector('input[name="option"]:checked');
+    userAnswer = selected ? selected.value : null;
+    if (userAnswer === q.answer) score++;
+  }
+
+  else if (q.type === "multiple") {
+    const selected = document.querySelectorAll('input[name="option"]:checked');
+    userAnswer = Array.from(selected).map(el => el.value);
+    const correctSet = new Set(q.answer);
+    const userSet = new Set(userAnswer);
+    if (userSet.size === correctSet.size && [...userSet].every(val => correctSet.has(val))) {
+      score++;
+    }
+  }
+
+  else if (q.type === "fill") {
+    userAnswer = document.getElementById("fill-answer").value.trim();
+    if (userAnswer.toLowerCase() === q.answer.toLowerCase()) score++;
+  }
+
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    loadQuestion();
+  } else {
+    document.getElementById("question-container").style.display = "none";
+    document.querySelector("button").style.display = "none";
+    document.getElementById("note").style.display = "none";
+    document.getElementById("result").innerText = `🎉 You scored ${score} out of ${questions.length}!`;
+  }
+}
+
+loadQuestion();
+</script>
+</body>
+</html>
+
